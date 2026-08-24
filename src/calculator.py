@@ -1,3 +1,5 @@
+import math
+
 class Calculator:
     """Core calculation engine for CalcSuite."""
 
@@ -123,7 +125,7 @@ class _ExpressionParser:
         return result
 
     def _parse_factor(self):
-        """Handle numbers, parentheses, and unary signs."""
+        """Handle unary signs and powers."""
         sign = 1
 
         while True:
@@ -135,18 +137,56 @@ class _ExpressionParser:
             if operator == "-":
                 sign *= -1
 
+        result = self._parse_power()
+
+        return sign * result
+
+    def _parse_power(self):
+        """Handle exponentiation."""
+        result = self._parse_primary()
+
+        operator = self._match("^")
+
+        if operator is not None:
+            right = self._parse_factor()
+            result = result ** right
+
+        return result
+
+    def _parse_primary(self):
+        """Handle numbers, parentheses, and square roots."""
         self._skip_spaces()
 
+        # Square root
+        if self.expression.startswith("sqrt", self.position):
+            self.position += 4
+            self._skip_spaces()
+
+            if self._match("(") is None:
+                raise ValueError("Expected '(' after sqrt")
+
+            value = self._parse_expression()
+
+            if self._match(")") is None:
+                raise ValueError("Missing closing parenthesis")
+
+            if value < 0:
+                raise ValueError("Cannot take square root of a negative number")
+
+            return math.sqrt(value)
+
+        # Parentheses
         if self._match("("):
             result = self._parse_expression()
 
             if self._match(")") is None:
                 raise ValueError("Missing closing parenthesis")
-        else:
-            result = self._parse_number()
 
-        return sign * result
+            return result
 
+        # Number
+        return self._parse_number()
+    
     def _parse_number(self):
         """Parse a decimal number from the expression."""
         self._skip_spaces()
