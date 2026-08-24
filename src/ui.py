@@ -1,0 +1,529 @@
+import tkinter as tk
+
+from src.calculator import Calculator
+
+from src.constants import (
+    BACKGROUND_COLOR,
+    TEXT_COLOR,
+    SECONDARY_TEXT,
+    EXPRESSION_FONT,
+    RESULT_FONT,
+    WINDOW_PADDING,
+    DISPLAY_TOP_PADDING,
+    DISPLAY_BOTTOM_PADDING,
+    DISPLAY_HEIGHT,
+    BUTTON_LAYOUT,
+    NUMBER_BUTTON,
+    FUNCTION_BUTTON,
+    OPERATOR_BUTTON,
+    BUTTON_TEXT,
+    BUTTON_FONT,
+)
+
+
+class CalculatorUI:
+
+    def __init__(self, root):
+
+        self.root = root
+
+        self.root.bind_all("<KeyPress>", self.handle_keypress)
+
+        self.current_value = "0"
+
+        self.first_number = None
+        self.operator = None
+
+        self.expression = ""
+
+        self.display_expression = ""
+
+        self.just_calculated = False
+
+        self.percent_used = False
+
+        self.create_display()
+
+        self.create_buttons()
+
+    def handle_keypress(self, event):
+        key = event.keysym
+        char = event.char
+
+    # Numbers
+        if char in "0123456789":
+            self.handle_button({
+            "text": char,
+            "type": "number"
+        })
+            return "break"
+
+    # Decimal
+        if char == ".":
+            self.handle_button({
+            "text": ".",
+            "type": "number"
+        })
+            return "break"
+
+    # Operators
+        operator_map = {
+            "+": "+",
+            "-": "-",
+            "*": "×",
+            "/": "÷"
+    }
+
+        if char in operator_map:
+            self.handle_button({
+            "text": operator_map[char],
+            "type": "operator"
+        })
+            return "break"
+
+    # Percentage
+        if char == "%":
+            self.handle_button({
+            "text": "%",
+            "type": "function"
+        })
+            return "break"
+
+    # Equals / Enter
+        if char == "=" or key == "Return":
+            self.handle_button({
+            "text": "=",
+            "type": "equals"
+        })
+            return "break"
+
+    # Backspace
+        if key == "BackSpace":
+            self.handle_button({
+            "text": "⌫",
+            "type": "function"
+        })
+            return "break"
+
+    # Escape / AC
+        if key == "Escape":
+            self.handle_button({
+            "text": "AC",
+            "type": "function"
+        })
+            return "break"
+
+    # Every other key is ignored.
+        return
+
+    def create_display(self):
+
+        display_frame = tk.Frame(
+            self.root,
+            bg=BACKGROUND_COLOR,
+            height=DISPLAY_HEIGHT
+        )
+        display_frame.pack_propagate(False)
+
+        display_frame.pack(
+        fill="x",
+        padx=WINDOW_PADDING,
+        pady=(DISPLAY_TOP_PADDING, DISPLAY_BOTTOM_PADDING)
+)
+        spacer = tk.Frame(
+            display_frame,
+            bg=BACKGROUND_COLOR
+)
+
+        spacer.pack(expand=True)
+
+        self.expression_label = tk.Label(
+            display_frame,
+            text=" ",
+            anchor="e",
+            bg=BACKGROUND_COLOR,
+            fg=SECONDARY_TEXT,
+            font=EXPRESSION_FONT
+        )
+
+        self.expression_label.pack(
+            fill="x"
+        )
+
+        self.result_label = tk.Label(
+            display_frame,
+            text="0",
+            anchor="e",
+            bg=BACKGROUND_COLOR,
+            fg=TEXT_COLOR,
+            font=RESULT_FONT
+        )
+
+        self.result_label.pack(
+            fill="x",
+            pady=(0, 10)
+        )
+
+        divider = tk.Frame(
+        self.root,
+        height=1,
+        bg="#2C2C2E"
+    )
+
+        divider.pack(
+        fill="x",
+        padx=20,
+        pady=(5, 0)
+    )
+
+    def create_buttons(self):
+
+        button_frame = tk.Frame(
+        self.root,
+        bg=BACKGROUND_COLOR
+)
+
+        button_frame.pack(
+        fill="both",
+        expand=True,
+        padx=20,
+        pady=20
+)
+        for row_index, row in enumerate(BUTTON_LAYOUT):
+
+            for column_index, button in enumerate(row):
+
+                if button["type"] == "number":
+                    background = NUMBER_BUTTON
+
+                elif button["type"] == "function":
+                    background = FUNCTION_BUTTON
+
+                elif button["type"] == "operator":
+                    background = OPERATOR_BUTTON
+
+                else:
+                    background = OPERATOR_BUTTON
+
+                btn = tk.Button(
+                button_frame,
+                text=button["text"],
+                bg=background,
+                fg=BUTTON_TEXT,
+                font=BUTTON_FONT,
+                command=lambda b=button: self.handle_button(b)
+        )
+                btn.grid(
+                row=row_index,
+                column=column_index,
+                sticky="nsew",
+                padx=5,
+                pady=5
+)
+    # Make all columns expand equally
+        for column in range(len(BUTTON_LAYOUT[0])):
+            button_frame.grid_columnconfigure(column, weight=1)
+
+# Make all rows expand equally
+        for row in range(len(BUTTON_LAYOUT)):
+            button_frame.grid_rowconfigure(row, weight=1)
+
+    def format_result(self, result):
+        if result == int(result):
+            return str(int(result))
+
+        return str(result)
+
+    def handle_button(self, button):
+
+        if button["type"] == "number":
+
+            if self.just_calculated:
+                self.current_value = button["text"]
+                self.expression = ""
+                self.first_number = None
+                self.operator = None
+                self.just_calculated = False
+
+                self.expression_label.config(
+                    text=""
+)
+            elif self.current_value in ("0", ""):
+                self.current_value = button["text"]
+            else:
+                self.current_value += button["text"]
+
+            if self.expression:
+                self.result_label.config(
+                    text=self.expression + self.current_value
+                )
+            else:
+                self.result_label.config(
+                    text=self.current_value
+                )
+
+        elif button["type"] == "decimal":
+            if "." not in self.current_value:
+                if self.current_value == "":
+                    self.current_value = "0."
+                else:
+                    self.current_value += "."
+
+                if self.expression:
+                    self.result_label.config(
+                        text=self.expression + self.current_value
+                    )
+                else:
+                    self.result_label.config(
+                        text=self.current_value
+                    )
+
+        elif button["type"] == "function":
+            if button["text"] == "AC":
+                self.current_value = "0"
+                self.first_number = None
+                self.operator = None
+                self.expression = ""
+                self.expression_label.config(text="")
+                self.result_label.config(text="0")
+
+
+            elif button["text"] == "+/-":
+
+                # No second number has been entered yet.
+                # Allow the user to start it as negative.
+                if self.current_value == "":
+                    self.current_value = "-"
+
+                # Toggle an existing negative number back to positive.
+                elif self.current_value.startswith("-"):
+                    self.current_value = self.current_value[1:]
+
+                # Make a positive number negative.
+                else:
+                    self.current_value = "-" + self.current_value
+
+                # Update the display.
+                if self.expression:
+                    self.result_label.config(
+                        text=self.expression + self.current_value
+                    )
+                else:
+                    self.result_label.config(
+                        text=self.current_value
+                    )
+
+            elif button["text"] == "%":
+                if self.current_value in ("", "-"):
+                    return
+
+                try:
+                    value = float(self.current_value)
+
+                    # Preserve the original expression only when
+                    # percentage is being used as part of an expression.
+                    if self.expression:
+                        self.display_expression = self.expression + self.current_value + "%"
+                    else:
+                        self.display_expression = ""
+
+                    # Percentage used inside an expression
+                    if self.operator is not None and self.first_number is not None:
+
+                        if self.operator in ("+", "-"):
+                            # 10% of the first number
+                            percentage = self.first_number * (value / 100)
+
+                            self.current_value = self.format_result(percentage)
+
+                        else:
+                            # For × and ÷, percentage is simply value / 100
+                            percentage = value / 100
+
+                            self.current_value = self.format_result(percentage)
+
+                        self.percent_used = True
+
+                    # Standalone percentage
+                    else:
+                        value = value / 100
+
+                        self.current_value = self.format_result(value)
+
+                        self.percent_used = True
+
+                    # Show the original expression only when
+                    # percentage is part of an expression.
+                    if self.expression:
+                        self.result_label.config(
+                            text=self.display_expression
+                        )
+                    else:
+                        self.result_label.config(
+                            text=self.current_value
+                        )
+
+                except ValueError:
+                    self.current_value = "Error"
+
+                    self.result_label.config(
+                        text="Error"
+                    )
+                return
+
+
+            elif button["text"] == "⌫":
+
+                # Delete from the number currently being entered.
+                if self.current_value != "":
+
+                    if len(self.current_value) > 1:
+                        self.current_value = self.current_value[:-1]
+
+                    elif self.expression:
+                        # We are deleting the last digit of the second number.
+                        # Leave it empty so the operator remains visible.
+                        self.current_value = ""
+
+                    else:
+                        # We are deleting the last digit of a standalone number.
+                        # Calculator should show 0 instead of becoming empty.
+                        self.current_value = "0"
+
+                # If the current number becomes empty,
+                # the next backspace should remove the operator.
+                elif self.expression:
+                    self.expression = self.expression[:-1]
+
+                    # The remaining expression is the first number.
+                    if self.expression:
+                        self.current_value = self.expression
+                        self.expression = ""
+                        self.first_number = None
+                        self.operator = None
+                    else:
+                        self.current_value = "0"
+
+                else:
+                    self.current_value = "0"
+
+                # Update the display.
+                if self.expression:
+                    self.result_label.config(
+                        text=self.expression + self.current_value
+                    )
+                else:
+                    self.result_label.config(
+                        text=self.current_value
+                    )
+
+        elif button["type"] == "operator":
+
+    # If we just finished a calculation, start a new calculation
+    # using the previous result.
+                    if self.just_calculated:
+
+                        self.first_number = float(self.current_value)
+                        self.expression = self.current_value
+                        self.just_calculated = False
+
+                        self.operator = button["text"]
+                        self.expression += self.operator
+                        self.current_value = ""
+
+                        self.result_label.config(
+                            text=self.expression
+                        )
+
+    # Chained operation
+                    elif self.operator is not None and self.current_value != "":
+
+                        second_number = float(self.current_value)
+
+        # Calculate the previous operation.
+                        try:
+                            result = Calculator.calculate(
+                                self.first_number,
+                                self.operator,
+                                second_number
+                            )
+                        except ZeroDivisionError:
+                            self.current_value = "Error"
+                            self.result_label.config(text="Error")
+                            return
+                        self.first_number = result
+
+        # Add the current number and the new operator
+        # to preserve the complete expression.
+                        self.expression += self.current_value + button["text"]
+
+        # Clear the current number so the next number starts fresh.
+                        self.current_value = ""
+
+                        self.operator = button["text"]
+
+                        self.result_label.config(
+                            text=self.expression
+                        )
+
+    # First operator
+                    else:
+
+                        self.first_number = float(self.current_value)
+
+        # Start the expression with the current number.
+                        self.expression = self.current_value
+
+        # Add the operator.
+                        self.operator = button["text"]
+                        self.expression += self.operator
+
+        # Clear current number.
+                        self.current_value = ""
+
+                        self.result_label.config(
+                            text=self.expression
+                        )
+            
+        elif button["type"] == "equals":
+            try:
+                second_number = float(self.current_value)
+
+                if self.percent_used:
+                    self.expression = self.display_expression
+                else:
+                    self.expression += self.current_value
+
+                self.expression_label.config(
+                    text=self.expression
+                )
+
+                result = Calculator.calculate(
+                    self.first_number,
+                    self.operator,
+                    second_number
+                )
+
+                self.current_value = self.format_result(result)
+
+                self.expression_label.config(
+                    text=self.expression
+                )
+
+                self.result_label.config(
+                    text=self.current_value
+                )
+                self.just_calculated = True
+                self.percent_used = False
+                self.display_expression = ""
+                
+            except ZeroDivisionError:
+                self.expression_label.config(
+                    text=self.expression + self.current_value
+                )
+
+                self.current_value = "Error"
+
+                self.result_label.config(
+                    text="Error"
+                )
