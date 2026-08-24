@@ -50,6 +50,25 @@ class CalculatorUI:
         key = event.keysym
         char = event.char
 
+         # Ignore Windows / system modifier keys.
+        system_keys = {
+        "Super_L",
+        "Super_R",
+        "Win_L",
+        "Win_R",
+        "Meta_L",
+        "Meta_R",
+        "Control_L",
+        "Control_R",
+        "Alt_L",
+        "Alt_R",
+        "Shift_L",
+        "Shift_R",
+    }
+
+        if key in system_keys:
+            return "break"
+
     # Numbers
         if char in "0123456789":
             self.handle_button({
@@ -114,7 +133,7 @@ class CalculatorUI:
             return "break"
 
     # Every other key is ignored.
-        return
+        return "break"
 
     def create_display(self):
 
@@ -418,112 +437,89 @@ class CalculatorUI:
                     )
 
         elif button["type"] == "operator":
-
-    # If we just finished a calculation, start a new calculation
-    # using the previous result.
-                    if self.just_calculated:
-
-                        self.first_number = float(self.current_value)
-                        self.expression = self.current_value
-                        self.just_calculated = False
-
-                        self.operator = button["text"]
-                        self.expression += self.operator
-                        self.current_value = ""
-
-                        self.result_label.config(
-                            text=self.expression
-                        )
-
-    # Chained operation
-                    elif self.operator is not None and self.current_value != "":
-
-                        second_number = float(self.current_value)
-
-        # Calculate the previous operation.
-                        try:
-                            result = Calculator.calculate(
-                                self.first_number,
-                                self.operator,
-                                second_number
-                            )
-                        except ZeroDivisionError:
-                            self.current_value = "Error"
-                            self.result_label.config(text="Error")
-                            return
-                        self.first_number = result
-
-        # Add the current number and the new operator
-        # to preserve the complete expression.
-                        self.expression += self.current_value + button["text"]
-
-        # Clear the current number so the next number starts fresh.
-                        self.current_value = ""
-
-                        self.operator = button["text"]
-
-                        self.result_label.config(
-                            text=self.expression
-                        )
-
-    # First operator
-                    else:
-
-                        self.first_number = float(self.current_value)
-
-        # Start the expression with the current number.
-                        self.expression = self.current_value
-
-        # Add the operator.
-                        self.operator = button["text"]
-                        self.expression += self.operator
-
-        # Clear current number.
-                        self.current_value = ""
-
-                        self.result_label.config(
-                            text=self.expression
-                        )
+            self._handle_operator(button["text"])
             
         elif button["type"] == "equals":
             try:
-                second_number = float(self.current_value)
-
+                # Percentage calculations still use the existing
+                # two-number logic for now.
                 if self.percent_used:
+                    second_number = float(self.current_value)
+                    result = Calculator.calculate(
+                        self.first_number,
+                        self.operator,
+                        second_number
+                    )
                     self.expression = self.display_expression
                 else:
+                    # Normal expressions use the new expression engine.
                     self.expression += self.current_value
-
-                self.expression_label.config(
-                    text=self.expression
-                )
-
-                result = Calculator.calculate(
-                    self.first_number,
-                    self.operator,
-                    second_number
-                )
+                    result = Calculator.evaluate_expression(self.expression)
 
                 self.current_value = self.format_result(result)
-
-                self.expression_label.config(
-                    text=self.expression
-                )
-
-                self.result_label.config(
-                    text=self.current_value
-                )
+                self.expression_label.config(text=self.expression)
+                self.result_label.config(text=self.current_value)
                 self.just_calculated = True
                 self.percent_used = False
                 self.display_expression = ""
-                
+
             except ZeroDivisionError:
                 self.expression_label.config(
                     text=self.expression + self.current_value
                 )
-
                 self.current_value = "Error"
+                self.result_label.config(text="Error")
 
-                self.result_label.config(
-                    text="Error"
+            except ValueError:
+                self.expression_label.config(
+                    text=self.expression + self.current_value
                 )
+                self.current_value = "Error"
+                self.result_label.config(text="Error")
+
+    def _handle_operator(self, operator):
+        """Handle an operator while building an expression."""
+
+        operators = ("+", "-", "×", "÷")
+
+        # Continue from the previous result.
+        if self.just_calculated:
+            self.expression = self.current_value
+            self.current_value = ""
+            self.just_calculated = False
+
+        # Start a new expression.
+        if not self.expression:
+            if self.current_value in ("", "Error"):
+                return
+
+            self.expression = self.current_value
+            self.current_value = ""
+
+            self.expression += operator
+
+        # A number is currently being entered.
+        elif self.current_value:
+            # Commit that number to the expression.
+            self.expression += self.current_value
+            self.current_value = ""
+
+            # Add the new operator.
+            self.expression += operator
+
+        # No number is currently being entered.
+        # Therefore an operator is already at the end.
+        elif self.expression[-1:] in operators:
+            # Replace the previous operator.
+            self.expression = self.expression[:-1] + operator
+
+        else:
+            self.expression += operator
+
+        # Keep this for existing percentage functionality.
+        self.operator = operator
+
+    # Update display.
+        self.result_label.config(
+            text=self.expression
+    )
