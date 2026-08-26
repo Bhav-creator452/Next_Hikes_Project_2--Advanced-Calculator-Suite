@@ -26,6 +26,8 @@ class CalculatorUI:
 
         self.root = root
 
+        self.root.minsize(650, 700)
+
         self.root.bind_all("<KeyPress>", self.handle_keypress)
 
         self.current_value = "0"
@@ -396,11 +398,14 @@ class CalculatorUI:
 )
 
         button_frame.pack(
-        fill="both",
-        expand=True,
-        padx=20,
-        pady=(10, 20)
-)
+            fill="both",
+            expand=True,
+            padx=20,
+            pady=(10, 20)
+        )
+
+        button_frame.pack_propagate(False)
+
         for row_index, row in enumerate(BUTTON_LAYOUT):
 
             for column_index, button in enumerate(row):
@@ -434,11 +439,17 @@ class CalculatorUI:
 )
     # Make all columns expand equally
         for column in range(len(BUTTON_LAYOUT[0])):
-            button_frame.grid_columnconfigure(column, weight=1)
+            button_frame.grid_columnconfigure(
+            column, 
+            weight=1)
 
 # Make all rows expand equally
         for row in range(len(BUTTON_LAYOUT)):
-            button_frame.grid_rowconfigure(row, weight=1)
+            button_frame.grid_rowconfigure(
+            row,
+            weight=1,
+            minsize=55
+    )
 
     def format_result(self, result):
         if result == int(result):
