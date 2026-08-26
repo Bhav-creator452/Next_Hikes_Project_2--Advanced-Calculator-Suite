@@ -20,7 +20,6 @@ from src.constants import (
     BUTTON_FONT,
 )
 
-
 class CalculatorUI:
 
     def __init__(self, root):
@@ -42,9 +41,12 @@ class CalculatorUI:
 
         self.percent_used = False
 
-        self.create_display()
+        self.scientific_mode = False
 
+        self.create_layout()
+        self.create_display()
         self.create_buttons()
+
 
     def handle_keypress(self, event):
         key = event.keysym
@@ -135,10 +137,164 @@ class CalculatorUI:
     # Every other key is ignored.
         return "break"
 
+    def create_layout(self):
+        """Create the main desktop calculator layout."""
+
+        # Main container
+        self.main_frame = tk.Frame(
+            self.root,
+            bg=BACKGROUND_COLOR
+        )
+
+        self.main_frame.pack(
+            fill="both",
+            expand=True
+        )
+
+        # Allow the three sections to resize.
+        self.main_frame.grid_columnconfigure(
+            0,
+            weight=0
+        )
+
+        self.main_frame.grid_columnconfigure(
+            1,
+            weight=1
+        )
+
+        self.main_frame.grid_columnconfigure(
+            2,
+            weight=0
+        )
+
+        self.main_frame.grid_rowconfigure(
+            0,
+            weight=1
+        )
+
+    # -------------------------------------------------
+    # LEFT SIDEBAR
+    # -------------------------------------------------
+
+        self.sidebar_frame = tk.Frame(
+            self.main_frame,
+            bg="#242426",
+            width=190
+        )
+
+        self.sidebar_frame.grid(
+            row=0,
+            column=0,
+            sticky="nsew"
+        )
+
+        self.sidebar_frame.grid_propagate(False)
+
+    # -------------------------------------------------
+    # CENTER CALCULATOR AREA
+    # -------------------------------------------------
+
+        self.calculator_frame = tk.Frame(
+            self.main_frame,
+            bg=BACKGROUND_COLOR
+        )
+
+        self.calculator_frame.grid(
+            row=0,
+            column=1,
+            sticky="nsew"
+        )
+
+        self.calculator_frame.grid_rowconfigure(
+            0,
+            weight=1
+        )
+
+        self.calculator_frame.grid_columnconfigure(
+            0,
+            weight=1
+    )
+
+    # -------------------------------------------------
+    # RIGHT HISTORY PANEL
+    # -------------------------------------------------
+
+        self.history_frame = tk.Frame(
+            self.main_frame,
+            bg="#242426",
+            width=260
+    )
+
+        self.history_frame.grid(
+            row=0,
+            column=2,
+            sticky="nsew"
+    )
+
+        self.history_frame.grid_propagate(False)
+
+        # Temporary sidebar content
+        sidebar_title = tk.Label(
+            self.sidebar_frame,
+            text="Calculator",
+            bg="#242426",
+            fg=TEXT_COLOR,
+            font=("Segoe UI", 16, "bold")
+        )
+
+        sidebar_title.pack(
+            anchor="w",
+            padx=20,
+            pady=(30, 20)
+        )
+
+        basic_label = tk.Label(
+            self.sidebar_frame,
+            text="▣  Basic",
+            bg="#242426",
+            fg=TEXT_COLOR,
+            font=("Segoe UI", 12)
+        )
+
+        basic_label.pack(
+            anchor="w",
+            padx=20,
+            pady=8
+        )
+
+        scientific_label = tk.Label(
+            self.sidebar_frame,
+            text="⚗  Scientific",
+            bg="#242426",
+            fg=TEXT_COLOR,
+            font=("Segoe UI", 12)
+        )
+
+        scientific_label.pack(
+            anchor="w",
+            padx=20,
+            pady=8
+        )
+
+    # Temporary history content
+        history_title = tk.Label(
+            self.history_frame,
+            text="History",
+            bg="#242426",
+            fg=TEXT_COLOR,
+            font=("Segoe UI", 16, "bold")
+    )
+
+        history_title.pack(
+            anchor="w",
+            padx=20,
+            pady=(30, 20)
+    )
+
     def create_display(self):
 
         display_frame = tk.Frame(
-            self.root,
+            self.calculator_frame,
             bg=BACKGROUND_COLOR,
             height=DISPLAY_HEIGHT
         )
@@ -149,12 +305,6 @@ class CalculatorUI:
         padx=WINDOW_PADDING,
         pady=(DISPLAY_TOP_PADDING, DISPLAY_BOTTOM_PADDING)
 )
-        spacer = tk.Frame(
-            display_frame,
-            bg=BACKGROUND_COLOR
-)
-
-        spacer.pack(expand=True)
 
         self.expression_label = tk.Label(
             display_frame,
@@ -195,10 +345,53 @@ class CalculatorUI:
         pady=(5, 0)
     )
 
+    def create_mode_selector(self):
+        """Create the Basic / Scientific mode selector."""
+
+        self.mode_frame = tk.Frame(
+            self.root,
+            bg=BACKGROUND_COLOR
+        )
+
+        self.mode_frame.pack(
+            fill="x",
+            padx=20,
+            pady=(5, 0)
+        )
+
+        self.mode_button = tk.Button(
+            self.mode_frame,
+            text="Basic",
+            bg=BACKGROUND_COLOR,
+            fg=TEXT_COLOR,
+            activebackground=BACKGROUND_COLOR,
+            activeforeground=TEXT_COLOR,
+            relief="flat",
+            bd=0,
+            font=("Arial", 12),
+            command=self.toggle_scientific_mode
+        )
+
+        self.mode_button.pack(
+            anchor="w"
+    )
+
+    def toggle_scientific_mode(self):
+        """Switch between Basic and Scientific calculator modes."""
+
+        self.scientific_mode = not self.scientific_mode
+
+        if self.scientific_mode:
+            self.mode_button.config(text="Scientific")
+            self.show_scientific_buttons()
+        else:
+            self.mode_button.config(text="Basic")
+            self.hide_scientific_buttons()
+
     def create_buttons(self):
 
         button_frame = tk.Frame(
-        self.root,
+        self.calculator_frame,
         bg=BACKGROUND_COLOR
 )
 
@@ -206,7 +399,7 @@ class CalculatorUI:
         fill="both",
         expand=True,
         padx=20,
-        pady=20
+        pady=(10, 20)
 )
         for row_index, row in enumerate(BUTTON_LAYOUT):
 
@@ -252,6 +445,127 @@ class CalculatorUI:
             return str(int(result))
 
         return str(result)
+
+    def create_scientific_buttons(self):
+        """Create the scientific calculator controls."""
+
+        self.scientific_frame = tk.Frame(
+            self.root,
+            bg=BACKGROUND_COLOR
+        )
+
+        scientific_buttons = [
+            {"text": "x²", "type": "scientific", "action": "square"},
+            {"text": "xʸ", "type": "scientific", "action": "power"},
+            {"text": "√x", "type": "scientific", "action": "sqrt"},
+            {"text": "1/x", "type": "scientific", "action": "reciprocal"},
+        ]
+
+        for column, button in enumerate(scientific_buttons):
+
+            btn = tk.Button(
+                self.scientific_frame,
+                text=button["text"],
+                bg=FUNCTION_BUTTON,
+                fg=BUTTON_TEXT,
+                activebackground=FUNCTION_BUTTON,
+                activeforeground=BUTTON_TEXT,
+                font=BUTTON_FONT,
+                relief="flat",
+                command=lambda b=button: self.handle_scientific_button(b)
+            )
+
+            btn.grid(
+                row=0,
+                column=column,
+                sticky="nsew",
+                padx=5,
+                pady=5
+            )
+
+            self.scientific_frame.grid_columnconfigure(
+                column,
+                weight=1
+            )
+
+    def show_scientific_buttons(self):
+        """Show the scientific controls."""
+
+        if not hasattr(self, "scientific_frame"):
+            self.create_scientific_buttons()
+
+        self.scientific_frame.pack(
+            fill="x",
+            padx=20,
+            pady=(5, 0)
+        )
+
+
+    def hide_scientific_buttons(self):
+        """Hide the scientific controls."""
+
+        if hasattr(self, "scientific_frame"):
+            self.scientific_frame.pack_forget()
+
+    def handle_scientific_button(self, button):
+        """Handle scientific calculator operations."""
+
+        action = button["action"]
+
+        if self.current_value in ("", "Error"):
+            return
+
+        try:
+            value = float(self.current_value)
+
+            if action == "square":
+                result = value ** 2
+
+            elif action == "sqrt":
+                if value < 0:
+                    raise ValueError(
+                        "Cannot take square root of a negative number"
+                    )
+
+                result = value ** 0.5
+
+            elif action == "reciprocal":
+                if value == 0:
+                    raise ZeroDivisionError(
+                        "Cannot divide by zero"
+                    )
+
+                result = 1 / value
+
+            elif action == "power":
+                # xʸ needs a second number.
+                self.expression = self.current_value + "^"
+                self.current_value = ""
+
+                self.result_label.config(
+                    text=self.expression
+                )
+
+                return
+
+            else:
+                return
+
+            self.current_value = self.format_result(result)
+
+            self.result_label.config(
+                text=self.current_value
+            )
+
+            self.just_calculated = True
+
+        except ZeroDivisionError:
+            self.current_value = "Error"
+            self.result_label.config(text="Error")
+
+        except ValueError:
+            self.current_value = "Error"
+            self.result_label.config(text="Error")
 
     def handle_button(self, button):
 
