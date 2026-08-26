@@ -25,7 +25,7 @@ class CalculatorApp:
         self.root.resizable(True, True)
 
         # Set a sensible minimum size.
-        self.root.minsize(700, 550)
+        self.root.minsize(650, 600)
 
         # Center the window initially.
         screen_width = self.root.winfo_screenwidth()

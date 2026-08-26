@@ -181,7 +181,7 @@ class CalculatorUI:
         self.sidebar_frame = tk.Frame(
             self.main_frame,
             bg="#242426",
-            width=190
+            width=170
         )
 
         self.sidebar_frame.grid(
@@ -224,7 +224,7 @@ class CalculatorUI:
         self.history_frame = tk.Frame(
             self.main_frame,
             bg="#242426",
-            width=260
+            width=230
     )
 
         self.history_frame.grid(
