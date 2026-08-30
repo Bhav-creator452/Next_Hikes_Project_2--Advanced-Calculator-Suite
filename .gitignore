@@ -1,34 +1,12 @@
-# Virtual environment
+__pycache__/
+*.pyc
 .venv/
 venv/
-env/
-
-# Python cache
-__pycache__/
-*.py[cod]
-
-# Pytest
-.pytest_cache/
-
-# VS Code
-.vscode/
-
-# Environment / secrets
 .env
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Python packaging
-*.egg-info/
-build/
-dist/
-.eggs/
-
-# Coverage
-.coverage
-htmlcov/
-
-# IDE files
 .idea/
+.vscode/
+*.egg-info/
+.pytest_cache/
+data/history.json
+data/settings.json
+data/currency_cache.json
