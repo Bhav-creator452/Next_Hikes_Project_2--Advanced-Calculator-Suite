@@ -115,14 +115,12 @@ from a corrupted history file) — 70 tests in total, all UI-independent.
 
 ## Screenshots
 
-_Add screenshots here once you've run the app locally, e.g.:_
-
-- `assets/screenshots/standard.png`
-- `assets/screenshots/scientific.png`
-- `assets/screenshots/bmi.png`
-- `assets/screenshots/converter.png`
-- `assets/screenshots/currency.png`
-- `assets/screenshots/history.png`
+- `![Standard Calculator](image.png)`
+- `![Scientific Calculator](image-1.png)`
+- `![BMI calculator]](image-2.png)`
+- `![Unit converter](image-3.png)`
+- `![Currency Converter](image-4.png)`
+- `![History](image-5.png)`
 
 ## Future Improvements
 
