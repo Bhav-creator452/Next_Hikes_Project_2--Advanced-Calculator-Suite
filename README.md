@@ -113,14 +113,27 @@ The suite covers the Standard and Scientific engines, BMI calculations,
 unit/temperature conversions, and history persistence (including recovery
 from a corrupted history file) — 70 tests in total, all UI-independent.
 
+
 ## Screenshots
 
-- `![Standard Calculator](image.png)`
-- `![Scientific Calculator](image-1.png)`
-- `![BMI calculator]](image-2.png)`
-- `![Unit converter](image-3.png)`
-- `![Currency Converter](image-4.png)`
-- `![History](image-5.png)`
+### Standard Calculator
+![Standard Calculator](image.png)
+
+### Scientific Calculator
+![Scientific Calculator](image-1.png)
+
+### BMI Calculator
+![BMI Calculator](image-2.png)
+
+### Unit Converter
+![Unit Converter](image-3.png)
+
+### Currency Converter
+![Currency Converter](image-4.png)
+
+### History
+![History](image-5.png)
+
 
 ## Future Improvements
 
